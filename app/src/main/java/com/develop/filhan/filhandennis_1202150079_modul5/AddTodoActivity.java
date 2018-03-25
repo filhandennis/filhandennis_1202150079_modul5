@@ -75,6 +75,9 @@ public class AddTodoActivity extends AppCompatActivity {
             //Memberikan nilai hasil saat Activity berakhir
             setResult(Activity.RESULT_OK,ini);
             finish();
+        }else{
+            setResult(Activity.RESULT_CANCELED);
+            finish();
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.develop.filhan.filhandennis_1202150079_modul5;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,6 +47,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewholder
 
         private TextView lblTodoID, lblTodoName, lblTodoDesc, lblTodoPrior;
         private TodoModel currTodo;
+        private CardView mCardView;
 
         public TodoViewholder(View itemView) {
             super(itemView);
@@ -51,6 +55,11 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewholder
             lblTodoName=(TextView)itemView.findViewById(R.id.lblTodoNama);
             lblTodoDesc=(TextView)itemView.findViewById(R.id.lblTodoDesc);
             lblTodoPrior=(TextView)itemView.findViewById(R.id.lblTodoPrior);
+            mCardView=(CardView)itemView.findViewById(R.id.todoCardView);
+
+            SharedPreferences pref = itemView.getContext().getSharedPreferences("pref",0);
+            String colored = pref.getString("shapeColorTXT","#FFFFFF");
+            mCardView.setCardBackgroundColor(Color.parseColor(colored));
         }
 
         public void bindTo(TodoModel todoModel){

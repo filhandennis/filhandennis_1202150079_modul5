@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +32,11 @@ public class MainActivity extends AppCompatActivity {
 
     private TodoHelper todoHelper;
     private ArrayList<TodoModel> todos;
+
+    private int shapeColor;
+    private int optionShapeColor;
+    private SharedPreferences pref;
+    private SharedPreferences.Editor prefEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +55,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Inisialisasi Attribute SharedPreferences dengan Nama 'Pref'
+        pref = getApplicationContext().getSharedPreferences("pref",0);
+        //Inisialisasi SharedPreferences untuk Membuat SharedPreferences dapat di edit
+        prefEdit=pref.edit();
+        Log.d("SharedPreferences::DATA","CardView BgColor: "+pref.getString("shapeColorTXT","#FFFFFF"));
 
+        //Elemen yang muncul jika data belum ada / 0
         lblNotExist=(TextView)findViewById(R.id.lblNotExistData);
         //Inisialisasi RecyclerView
         recyclerView=(RecyclerView)findViewById(R.id.recyclerviewTodos);
@@ -94,11 +107,86 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            //startActivityForResult(new Intent(getApplicationContext(), SettingsActivity.class), 001);
+            changeBgItemColor();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+    /*
+    * Method yang digunakan untuk memilih warna Background Item CardView
+    */
+    public void changeBgItemColor(){
+        //Inisialisasi Default untuk warna
+        shapeColor = R.color.shapeDefault;
+        //Data ID RadioButton yang diambil dari SharePreferences
+        optionShapeColor = pref.getInt("optionShapeColorSelected",R.id.rShapeColorDefault);
+        //mCardView.setCardBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent));
+        //Membuat Dialog
+        final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("Shape Color"); //Mengatur Judul
+        //Mengubah Layout XML menjadi Kodingan
+        final View dialogView = getLayoutInflater().inflate(R.layout.fragment_shapecolor,null);
+        //Mengambil RadioGroup dari Layout XML
+        final RadioGroup rg =(RadioGroup)dialogView.findViewById(R.id.rgShapeColor);
+        //Melakukan Check Default
+        rg.check(optionShapeColor);
+        //Inflat R.layout.fragment_shapecolor
+        dialog.setView(dialogView);
+        //Perintah jika tombol Done pada dialog ditap
+        dialog.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //Mengambil nilai yang di cek/pilih
+                switch(rg.getCheckedRadioButtonId()){
+                    //Melakuakan Pengambilan nilai
+                    // optionShapeColor untuk ID RadioButton
+                    // shapeColor untuk Kode Warna
+                    case R.id.rShapeColorDefault: optionShapeColor=R.id.rShapeColorDefault; shapeColor=R.color.shapeDefault; break;
+                    case R.id.rShapeColorRed: optionShapeColor=R.id.rShapeColorRed; shapeColor=R.color.shapeRed; break;
+                    case R.id.rShapeColorBlue: optionShapeColor=R.id.rShapeColorBlue; shapeColor=R.color.shapeBlue; break;
+                    case R.id.rShapeColorGreen: optionShapeColor=R.id.rShapeColorGreen; shapeColor=R.color.shapeGreen; break;
+                }
+                Log.d("SET::COLOR",""+getResources().getString(shapeColor));
+                //Set jika kondisiterpenuhi
+                setTodoItemBg();
+            }
+        });
+        //Perintah jika tombol Cancel pada dialog ditap
+        dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    /*
+    * Method yang digunakan setelah pemilihan warna selesai
+    *   digunakan untuk melakukan penyimpanan nilai ke SharedPreferences > pref
+    *   shapeColor = id warna di colors.xml
+    *   optionShapeColorSelected = id radiobutton
+    */
+    public void setTodoItemBg(){
+        String color = getResources().getString(shapeColor);
+        //mCardView.setCardBackgroundColor(Color.parseColor("#f5f5f5"));
+        //Simpan ID RadioButton
+        prefEdit.putInt("optionShapeColorSelected",optionShapeColor);
+        //Simpan Warna
+        prefEdit.putInt("shapeColor",shapeColor);
+        prefEdit.putString("shapeColorTXT",color);
+        //prefEdit.putString("shapeColorTXT","#FFFFFF");
+        prefEdit.commit();
+
+        //SharedPreferences pref = getApplicationContext().getSharedPreferences("pref",0);
+        Log.d("SharedPreferences::DATA","CardViewSet BgColor: "+pref.getString("shapeColorTXT","#FFFFFF"));
+        //Dilakukan untuk me-refresh list
+        loadTodoData();
+    }
+
 
     /*
     * Method untuk mengambil data dari database
